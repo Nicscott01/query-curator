@@ -1,0 +1,750 @@
+/**
+ * Query Curator - Admin Styles
+ *
+ * Matches the WordPress admin aesthetic. Only loaded on the query_group
+ * edit screen.
+ *
+ * @package QueryCurator
+ */
+
+/* ==========================================================================
+   Query Builder Meta Box
+   ========================================================================== */
+
+.qc-query-builder {
+	padding: 10px 0;
+}
+
+.qc-filter-row {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 16px;
+	flex-wrap: wrap;
+}
+
+.qc-filter-field {
+	flex: 1;
+	min-width: 200px;
+}
+
+.qc-field-limit {
+	max-width: 120px;
+	min-width: 80px;
+	flex: 0 0 auto;
+}
+
+.qc-filter-field label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 4px;
+	color: #1d2327;
+	font-size: 13px;
+}
+
+.qc-filter-field select,
+.qc-filter-field input[type="text"],
+.qc-filter-field input[type="number"],
+.qc-filter-field input[type="date"] {
+	width: 100%;
+	max-width: 100%;
+}
+
+.qc-filter-field select[multiple] {
+	height: 100px;
+}
+
+.qc-filter-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding-top: 12px;
+	border-top: 1px solid #dcdcde;
+	margin-top: 8px;
+	flex-wrap: wrap;
+}
+
+.qc-filter-help {
+	font-size: 12px;
+	color: #8c8f94;
+	font-style: italic;
+}
+
+.qc-loading.spinner {
+	float: none;
+	visibility: visible;
+	margin: 0;
+}
+
+.qc-loading-msg {
+	color: #8c8f94;
+	font-style: italic;
+	font-size: 12px;
+	margin: 4px 0;
+}
+
+/* ==========================================================================
+   Query Cards
+   ========================================================================== */
+
+.qc-query-card {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #f6f7f7;
+	margin-bottom: 12px;
+}
+
+.qc-query-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 10px 16px;
+	background: #fff;
+	border-bottom: 1px solid #dcdcde;
+	border-radius: 4px 4px 0 0;
+}
+
+.qc-query-card-header strong {
+	font-size: 14px;
+	color: #1d2327;
+}
+
+.qc-remove-card {
+	color: #d63638 !important;
+	font-size: 12px;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.qc-remove-card:hover {
+	text-decoration: underline;
+}
+
+.qc-query-card-body {
+	padding: 16px;
+}
+
+/* Taxonomy container inside card */
+.qc-taxonomy-container {
+	margin-bottom: 16px;
+}
+
+.qc-taxonomy-row {
+	margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Meta Filter Rows (repeatable)
+   ========================================================================== */
+
+.qc-meta-section {
+	border-top: 1px solid #dcdcde;
+	padding-top: 12px;
+	margin-top: 4px;
+}
+
+.qc-meta-section-label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 8px;
+	color: #50575e;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+}
+
+.qc-meta-rows {
+	margin-bottom: 8px;
+}
+
+.qc-meta-row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.qc-meta-key {
+	flex: 2;
+	min-width: 150px;
+}
+
+.qc-meta-compare {
+	flex: 0 0 auto;
+	width: 100px;
+}
+
+.qc-meta-value {
+	flex: 2;
+	min-width: 100px;
+}
+
+.qc-remove-meta-row {
+	flex: 0 0 auto;
+	color: #d63638 !important;
+	font-size: 18px;
+	text-decoration: none;
+	cursor: pointer;
+	padding: 0 4px;
+	line-height: 1;
+}
+
+.qc-remove-meta-row:hover {
+	color: #9c1e20 !important;
+}
+
+.qc-add-meta-row {
+	margin-top: 4px;
+}
+
+/* ==========================================================================
+   Results Toolbar (count + Save/Add Posts buttons)
+   ========================================================================== */
+
+.qc-results-toolbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 12px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.qc-toolbar-buttons {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.qc-results-count {
+	font-size: 13px;
+	color: #50575e;
+	font-weight: 600;
+}
+
+/* Save Posts button */
+.qc-save-posts-btn {
+	transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.qc-save-posts-btn.qc-dirty {
+	animation: qc-pulse 1.5s ease-in-out 1;
+}
+
+@keyframes qc-pulse {
+	0% { box-shadow: 0 0 0 0 rgba(34, 113, 177, 0.5); }
+	50% { box-shadow: 0 0 0 4px rgba(34, 113, 177, 0.15); }
+	100% { box-shadow: 0 0 0 0 rgba(34, 113, 177, 0); }
+}
+
+/* ==========================================================================
+   Results Grid
+   ========================================================================== */
+
+.qc-results-wrapper {
+	padding: 10px 0;
+}
+
+.qc-results-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 12px;
+}
+
+.qc-post-item {
+	position: relative;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+	padding: 8px;
+	cursor: move;
+	transition: box-shadow 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
+	outline: none;
+}
+
+/* Locked post indicator — subtle blue left border */
+.qc-post-item.qc-locked {
+	border-left: 3px solid #2271b1;
+}
+
+/* New post indicator — green left border */
+.qc-post-item.qc-new {
+	border-left: 3px solid #00a32a;
+}
+
+/* NEW badge */
+.qc-new-badge {
+	position: absolute;
+	top: 4px;
+	left: 4px;
+	background: #00a32a;
+	color: #fff;
+	font-size: 9px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	padding: 2px 6px;
+	border-radius: 2px;
+	z-index: 1;
+	line-height: 1.4;
+}
+
+.qc-post-item:hover {
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+	border-color: #2271b1;
+}
+
+.qc-post-item:focus {
+	box-shadow: 0 0 0 2px #2271b1;
+	border-color: #2271b1;
+}
+
+.qc-post-thumbnail {
+	width: 100%;
+	height: 120px;
+	overflow: hidden;
+	border-radius: 2px;
+	margin-bottom: 8px;
+	background: #f0f0f1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.qc-post-thumbnail img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.qc-no-thumbnail {
+	color: #8c8f94;
+	font-size: 12px;
+	font-style: italic;
+}
+
+.qc-post-title {
+	display: block;
+	font-weight: 600;
+	font-size: 13px;
+	line-height: 1.4;
+	color: #1d2327;
+	margin-bottom: 4px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.qc-post-type {
+	display: block;
+	font-size: 11px;
+	color: #8c8f94;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+/* Remove button */
+.qc-remove-post {
+	position: absolute;
+	top: 4px;
+	right: 4px;
+	width: 24px;
+	height: 24px;
+	border: none;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.5);
+	color: #fff;
+	font-size: 16px;
+	line-height: 24px;
+	text-align: center;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 0.2s ease, background 0.2s ease;
+	padding: 0;
+}
+
+.qc-post-item:hover .qc-remove-post,
+.qc-post-item:focus .qc-remove-post {
+	opacity: 1;
+}
+
+.qc-remove-post:hover {
+	background: #d63638;
+}
+
+.qc-remove-post:focus {
+	opacity: 1;
+	outline: 2px solid #d63638;
+	outline-offset: 2px;
+}
+
+/* Sortable drag states */
+.qc-post-item.ui-sortable-helper {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	opacity: 0.9;
+	transform: rotate(1deg);
+}
+
+.qc-post-placeholder {
+	border: 2px dashed #2271b1;
+	border-radius: 4px;
+	background: #f0f6fc;
+	min-height: 180px;
+}
+
+/* Empty state */
+.qc-empty-state {
+	text-align: center;
+	color: #8c8f94;
+	font-style: italic;
+	padding: 40px 20px;
+	margin: 0;
+}
+
+/* ==========================================================================
+   Status Messages (auto-dismiss notices)
+   ========================================================================== */
+
+.qc-notice {
+	padding: 8px 12px;
+	margin: 8px 0;
+	border-left: 4px solid #2271b1;
+	background: #f0f6fc;
+	font-size: 13px;
+}
+
+.qc-notice.qc-notice-success {
+	border-left-color: #00a32a;
+	background: #edfaef;
+}
+
+.qc-notice.qc-notice-error {
+	border-left-color: #d63638;
+	background: #fcf0f1;
+}
+
+/* ==========================================================================
+   Add Posts Modal
+   ========================================================================== */
+
+.qc-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 100100; /* Above WP admin bar and other overlays */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.qc-modal-backdrop {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.6);
+}
+
+.qc-modal-content {
+	position: relative;
+	background: #fff;
+	border-radius: 8px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	width: 600px;
+	max-width: 90vw;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.qc-modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 16px 20px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.qc-modal-header h2 {
+	margin: 0;
+	font-size: 18px;
+	color: #1d2327;
+}
+
+.qc-modal-close {
+	background: none;
+	border: none;
+	font-size: 24px;
+	color: #8c8f94;
+	cursor: pointer;
+	padding: 0;
+	line-height: 1;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 4px;
+}
+
+.qc-modal-close:hover {
+	background: #f0f0f1;
+	color: #d63638;
+}
+
+.qc-modal-close:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: -2px;
+}
+
+.qc-modal-body {
+	padding: 20px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+/* Search bar inside modal */
+.qc-search-bar {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.qc-search-bar input[type="text"] {
+	flex: 1;
+	min-width: 0;
+}
+
+.qc-search-spinner.spinner {
+	float: none;
+	visibility: visible;
+	margin: 0;
+}
+
+/* Search results list */
+.qc-search-results {
+	max-height: 400px;
+	overflow-y: auto;
+}
+
+.qc-search-empty {
+	text-align: center;
+	color: #8c8f94;
+	font-style: italic;
+	padding: 20px 0;
+	margin: 0;
+}
+
+.qc-search-result-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 10px 8px;
+	border-bottom: 1px solid #f0f0f1;
+	transition: background 0.15s;
+}
+
+.qc-search-result-row:last-child {
+	border-bottom: none;
+}
+
+.qc-search-result-row:hover {
+	background: #f6f7f7;
+}
+
+.qc-search-thumb {
+	width: 48px;
+	height: 48px;
+	flex-shrink: 0;
+	border-radius: 4px;
+	overflow: hidden;
+	background: #f0f0f1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.qc-search-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.qc-search-no-thumb {
+	color: #ccc;
+	font-size: 18px;
+}
+
+.qc-search-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.qc-search-info strong {
+	display: block;
+	font-size: 13px;
+	color: #1d2327;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.qc-search-type {
+	font-size: 11px;
+	color: #8c8f94;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.qc-search-add-btn {
+	flex-shrink: 0;
+}
+
+.qc-search-add-btn.qc-added {
+	background: #edfaef;
+	border-color: #00a32a;
+	color: #00a32a;
+}
+
+/* ==========================================================================
+   Responsive adjustments
+   ========================================================================== */
+
+@media screen and (max-width: 782px) {
+	.qc-filter-row {
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.qc-filter-field {
+		min-width: 100%;
+	}
+
+	.qc-field-limit {
+		max-width: 100%;
+	}
+
+	.qc-results-grid {
+		grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+		gap: 8px;
+	}
+
+	.qc-post-thumbnail {
+		height: 90px;
+	}
+
+	.qc-results-toolbar {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+
+	.qc-modal-content {
+		width: 95vw;
+		max-height: 90vh;
+	}
+
+	.qc-filter-actions {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.qc-meta-row {
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.qc-meta-key,
+	.qc-meta-compare,
+	.qc-meta-value {
+		width: 100%;
+	}
+
+	.qc-meta-compare {
+		width: 100%;
+	}
+
+	.qc-query-card-body {
+		padding: 12px;
+	}
+}
+
+/* ==========================================================================
+   Code Snippets Sidebar
+   ========================================================================== */
+
+.qc-snippets {
+	padding: 4px 0;
+}
+
+.qc-snippets-note {
+	color: #8c8f94;
+	font-style: italic;
+	margin: 0;
+}
+
+.qc-snippets-label {
+	font-weight: 600;
+	font-size: 11px;
+	color: #50575e;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	margin: 12px 0 4px;
+}
+
+.qc-snippets-label:first-child {
+	margin-top: 0;
+}
+
+.qc-snippet-block {
+	display: flex;
+	align-items: stretch;
+	gap: 0;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	overflow: hidden;
+	background: #f6f7f7;
+}
+
+.qc-snippet-code {
+	flex: 1;
+	padding: 6px 8px;
+	font-size: 11px;
+	line-height: 1.5;
+	font-family: Consolas, Monaco, monospace;
+	color: #1d2327;
+	word-break: break-all;
+	white-space: pre-wrap;
+	background: transparent;
+	border: none;
+	min-width: 0;
+}
+
+.qc-copy-btn {
+	flex-shrink: 0;
+	border-radius: 0 !important;
+	border: none !important;
+	border-left: 1px solid #dcdcde !important;
+	font-size: 11px !important;
+	padding: 4px 10px !important;
+	height: auto !important;
+	line-height: 1.5 !important;
+	cursor: pointer;
+}
+
+.qc-copy-btn.qc-copied {
+	background: #edfaef !important;
+	color: #00a32a !important;
+}
+
+/* ==========================================================================
+   Admin list table (muted dash for empty post type column)
+   ========================================================================== */
+
+.qc-muted {
+	color: #a7aaad;
+}
