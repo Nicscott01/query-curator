@@ -167,6 +167,12 @@ class Query_Curator_Meta_Boxes {
 				'publishedBefore'   => __( 'Published Before', 'query-curator' ),
 				'confirmReplace'    => __( 'This will add new results below your saved posts. Continue?', 'query-curator' ),
 				'selectMetaKey'     => __( '-- Select Key --', 'query-curator' ),
+				'addedPosts'        => __( 'Added %d posts', 'query-curator' ),
+				'removeCardResults' => __( 'Remove', 'query-curator' ),
+				'removedPosts'      => __( 'Removed %d posts', 'query-curator' ),
+				'allResultsExist'   => __( 'No new posts added', 'query-curator' ),
+				'previewCount'      => __( '~%d results', 'query-curator' ),
+				'counting'          => __( 'Counting...', 'query-curator' ),
 			),
 		) );
 	}
@@ -253,6 +259,7 @@ class Query_Curator_Meta_Boxes {
 					<?php esc_html_e( 'Refresh from Query', 'query-curator' ); ?>
 				</button>
 				<span class="qc-loading spinner" style="display: none;"></span>
+				<span class="qc-preview-count"></span>
 				<span class="qc-filter-help">
 					<?php esc_html_e( 'Load Results keeps saved posts and appends new matches below. Multiple queries are combined with OR.', 'query-curator' ); ?>
 				</span>

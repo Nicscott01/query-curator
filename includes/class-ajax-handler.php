@@ -2,12 +2,13 @@
 /**
  * AJAX handler for Query Curator.
  *
- * Provides five endpoints:
- * - qc_fetch_posts:     Run multi-query builder and return matching posts.
+ * Provides six endpoints:
+ * - qc_fetch_posts:     Run multi-query builder and return matching posts with card_map.
  * - qc_save_order:      Persist the curated post ID array to post meta.
  * - qc_search_posts:    Live-search posts by title for the "Add Posts" modal.
- * - qc_get_taxonomies:  Return taxonomies and terms for a given post type.
+ * - qc_get_taxonomies:  Return taxonomies (with term counts) for a given post type.
  * - qc_get_meta_keys:   Return distinct meta keys for a given post type.
+ * - qc_count_posts:     Lightweight count of matching posts for live preview.
  *
  * @package QueryCurator
  */
@@ -39,6 +40,7 @@ class Query_Curator_Ajax_Handler {
 		add_action( 'wp_ajax_qc_search_posts', array( $this, 'search_posts' ) );
 		add_action( 'wp_ajax_qc_get_taxonomies', array( $this, 'get_taxonomies' ) );
 		add_action( 'wp_ajax_qc_get_meta_keys', array( $this, 'get_meta_keys' ) );
+		add_action( 'wp_ajax_qc_count_posts', array( $this, 'count_posts' ) );
 	}
 
 	/**
@@ -80,8 +82,9 @@ class Query_Curator_Ajax_Handler {
 			if ( ! is_wp_error( $terms ) ) {
 				foreach ( $terms as $term ) {
 					$term_data[] = array(
-						'id'   => $term->term_id,
-						'name' => $term->name,
+						'id'    => $term->term_id,
+						'name'  => $term->name,
+						'count' => (int) $term->count,
 					);
 				}
 			}
@@ -137,6 +140,43 @@ class Query_Curator_Ajax_Handler {
 	}
 
 	/**
+	 * Return a lightweight count of matching posts for the live preview.
+	 *
+	 * Accepts the same multi-query format as fetch_posts() but only
+	 * returns the deduplicated count — no post data, no meta saving.
+	 *
+	 * @return void Sends JSON response and dies.
+	 */
+	public function count_posts() {
+		check_ajax_referer( 'qc_nonce', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( __( 'Insufficient permissions.', 'query-curator' ) );
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$raw_queries = isset( $_POST['queries'] ) ? $_POST['queries'] : array();
+
+		if ( empty( $raw_queries ) || ! is_array( $raw_queries ) ) {
+			wp_send_json_success( array( 'count' => 0 ) );
+		}
+
+		$seen_ids = array();
+
+		foreach ( $raw_queries as $raw_query ) {
+			$result = $this->execute_single_query( $raw_query, 0 );
+
+			foreach ( $result['post_ids'] as $pid ) {
+				if ( ! isset( $seen_ids[ $pid ] ) ) {
+					$seen_ids[ $pid ] = true;
+				}
+			}
+		}
+
+		wp_send_json_success( array( 'count' => count( $seen_ids ) ) );
+	}
+
+	/**
 	 * Fetch posts based on multi-query builder parameters.
 	 *
 	 * Accepts an array of query card configurations, executes each
@@ -169,20 +209,27 @@ class Query_Curator_Ajax_Handler {
 		$all_post_ids   = array();
 		$seen_ids       = array();
 		$saved_queries  = array();
+		$card_map       = array();
 
-		foreach ( $raw_queries as $raw_query ) {
+		foreach ( $raw_queries as $card_index => $raw_query ) {
 			$result = $this->execute_single_query( $raw_query, $post_id );
 
 			// Track the sanitized query params for saving.
 			$saved_queries[] = $result['params'];
 
+			// Track which posts this card contributed (only new, unseen IDs).
+			$card_contributed = array();
+
 			// Union results — deduplicate by post ID.
 			foreach ( $result['post_ids'] as $pid ) {
 				if ( ! isset( $seen_ids[ $pid ] ) ) {
-					$seen_ids[ $pid ] = true;
-					$all_post_ids[]   = $pid;
+					$seen_ids[ $pid ]   = true;
+					$all_post_ids[]     = $pid;
+					$card_contributed[] = $pid;
 				}
 			}
+
+			$card_map[ $card_index ] = $card_contributed;
 		}
 
 		// Fetch the full post objects for all collected IDs.
@@ -206,7 +253,10 @@ class Query_Curator_Ajax_Handler {
 			) );
 		}
 
-		wp_send_json_success( $posts_data );
+		wp_send_json_success( array(
+			'posts'    => $posts_data,
+			'card_map' => $card_map,
+		) );
 	}
 
 	/**

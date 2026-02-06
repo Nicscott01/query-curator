@@ -82,6 +82,22 @@
 	margin: 4px 0;
 }
 
+/* Preview count (live result estimate) */
+.qc-preview-count {
+	font-size: 13px;
+	color: #50575e;
+	margin-left: 8px;
+	font-style: italic;
+}
+
+.qc-preview-count.qc-counting {
+	color: #999;
+}
+
+.qc-preview-count:empty {
+	display: none;
+}
+
 /* ==========================================================================
    Query Cards
    ========================================================================== */
@@ -117,6 +133,26 @@
 
 .qc-remove-card:hover {
 	text-decoration: underline;
+}
+
+/* Card contribution label (shows "Added X posts (Remove)") */
+.qc-card-contribution {
+	font-size: 12px;
+	color: #50575e;
+	margin-left: auto;
+	padding-right: 8px;
+}
+
+.qc-card-contribution .qc-undo-card-results {
+	color: #b32d2e;
+	cursor: pointer;
+	margin-left: 6px;
+	text-decoration: underline;
+	font-size: 12px;
+}
+
+.qc-card-contribution .qc-undo-card-results:hover {
+	color: #a00;
 }
 
 .qc-query-card-body {

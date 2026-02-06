@@ -44,6 +44,15 @@
 		/** @type {string[]} Valid compare operators for meta queries. */
 		var validCompares = [ '=', '!=', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE', 'EXISTS', 'NOT EXISTS' ];
 
+		/** @type {Object} Tracks which post IDs each query card contributed. Keyed by card index. */
+		var cardContributions = {};
+
+		/** @type {number|null} Timer ID for debounced preview count. */
+		var previewTimer = null;
+
+		/** @type {jqXHR|null} Active preview count AJAX request. */
+		var previewXhr = null;
+
 		// -----------------------------------------------------------------
 		// Cache DOM references
 		// -----------------------------------------------------------------
@@ -58,6 +67,7 @@
 		var $emptyState     = $( '.qc-empty-state' );
 		var $resultsCount   = $( '.qc-results-count' );
 		var $saveBtn        = $( '#qc-save-posts-btn' );
+		var $previewCount   = $( '.qc-preview-count' );
 
 		// Add Posts modal elements.
 		var $addBtn        = $( '#qc-add-posts-btn' );
@@ -330,7 +340,11 @@
 				var options = '';
 				$.each( tax.terms, function( j, term ) {
 					var sel = ( selectedTerms.indexOf( term.id ) !== -1 ) ? ' selected' : '';
-					options += '<option value="' + escAttr( term.id ) + '"' + sel + '>' + escHtml( term.name ) + '</option>';
+					var label = term.name;
+					if ( typeof term.count !== 'undefined' ) {
+						label += ' (' + term.count + ')';
+					}
+					options += '<option value="' + escAttr( term.id ) + '"' + sel + '>' + escHtml( label ) + '</option>';
 				} );
 
 				html += '<div class="qc-filter-field">' +
@@ -490,15 +504,34 @@
 		$addCardBtn.on( 'click', function( e ) {
 			e.preventDefault();
 			renderQueryCard();
+			schedulePreviewCount();
 		} );
 
 		// Remove query card.
 		$cardsContainer.on( 'click', '.qc-remove-card', function( e ) {
 			e.preventDefault();
-			$( this ).closest( '.qc-query-card' ).fadeOut( 200, function() {
+			var $removedCard = $( this ).closest( '.qc-query-card' );
+			var removedIdx = $cardsContainer.find( '.qc-query-card' ).index( $removedCard );
+
+			$removedCard.fadeOut( 200, function() {
 				$( this ).remove();
+
+				// Re-index cardContributions after card removal.
+				var newContributions = {};
+				$.each( cardContributions, function( idx, ids ) {
+					idx = parseInt( idx, 10 );
+					if ( idx === removedIdx ) {
+						return; // skip removed card
+					}
+					var newIdx = idx > removedIdx ? idx - 1 : idx;
+					newContributions[ newIdx ] = ids;
+				} );
+				cardContributions = newContributions;
+
 				updateCardHeaders();
 				updateRemoveButtons();
+				updateCardContributionLabels();
+				schedulePreviewCount();
 			} );
 		} );
 
@@ -514,6 +547,7 @@
 			e.preventDefault();
 			var $card = $( this ).closest( '.qc-query-card' );
 			addMetaRow( $card );
+			schedulePreviewCount();
 		} );
 
 		// Remove meta filter row.
@@ -521,7 +555,74 @@
 			e.preventDefault();
 			$( this ).closest( '.qc-meta-row' ).fadeOut( 150, function() {
 				$( this ).remove();
+				schedulePreviewCount();
 			} );
+		} );
+
+		// Undo card results — remove posts contributed by a specific card.
+		$cardsContainer.on( 'click', '.qc-undo-card-results', function( e ) {
+			e.preventDefault();
+			var cardIdx = parseInt( $( this ).data( 'card-index' ), 10 );
+			var ids = cardContributions[ cardIdx ];
+
+			if ( ! ids || ids.length === 0 ) {
+				return;
+			}
+
+			var removedCount = 0;
+			$.each( ids, function( i, id ) {
+				var $item = $grid.find( '.qc-post-item[data-post-id="' + id + '"]' );
+				if ( $item.length ) {
+					$item.remove();
+					removedCount++;
+				}
+			} );
+
+			delete cardContributions[ cardIdx ];
+			updateHiddenInput();
+			updateCardContributionLabels();
+
+			if ( removedCount > 0 ) {
+				markDirty();
+				var msg = qcData.i18n.removedPosts.replace( '%d', removedCount );
+				showNotice( msg, 'success' );
+			}
+
+			if ( $grid.find( '.qc-post-item' ).length === 0 ) {
+				$emptyState.show();
+			}
+		} );
+
+		// -----------------------------------------------------------------
+		// Preview count triggers — fire on any filter change.
+		// -----------------------------------------------------------------
+
+		// Post type change.
+		$cardsContainer.on( 'change', '.qc-card-post-type', function() {
+			schedulePreviewCount();
+		} );
+
+		// Taxonomy selection change.
+		$cardsContainer.on( 'change', '.qc-card-taxonomy', function() {
+			schedulePreviewCount();
+		} );
+
+		// Date input change.
+		$cardsContainer.on( 'change', '.qc-card-date-after, .qc-card-date-before', function() {
+			schedulePreviewCount();
+		} );
+
+		// Meta row changes.
+		$cardsContainer.on( 'change', '.qc-meta-key, .qc-meta-compare', function() {
+			schedulePreviewCount();
+		} );
+		$cardsContainer.on( 'input', '.qc-meta-value', function() {
+			schedulePreviewCount();
+		} );
+
+		// Limit change.
+		$cardsContainer.on( 'change', '.qc-card-limit', function() {
+			schedulePreviewCount();
 		} );
 
 		// =====================================================================
@@ -566,17 +667,22 @@
 		 * Merge new query results into the grid.
 		 * Locked posts stay in place. New posts are appended below.
 		 *
-		 * @param {Array} newPosts Array of post data objects from AJAX.
+		 * @param {Array}  newPosts Array of post data objects from AJAX.
+		 * @param {Object} [cardMap] Map of card index => array of contributed post IDs.
 		 */
-		function mergeResultsIntoGrid( newPosts ) {
+		function mergeResultsIntoGrid( newPosts, cardMap ) {
 			if ( ! newPosts || newPosts.length === 0 ) {
 				showNotice( qcData.i18n.noResults, 'error' );
+				updateCardContributionLabels();
 				return;
 			}
 
 			// Get current IDs in the grid.
 			var currentIds = getCuratedIds();
 			var addedCount = 0;
+
+			// Build a set of added IDs for tracking card contributions.
+			var actuallyAdded = {};
 
 			$.each( newPosts, function( index, post ) {
 				// Skip if already in grid (locked or otherwise).
@@ -587,8 +693,24 @@
 				var $card = buildPostCard( post, true );
 				$card.hide().appendTo( $grid ).fadeIn( 200 );
 				currentIds.push( post.id );
+				actuallyAdded[ post.id ] = true;
 				addedCount++;
 			} );
+
+			// Track card contributions — only IDs that were actually added.
+			if ( cardMap ) {
+				$.each( cardMap, function( cardIdx, ids ) {
+					var contributed = [];
+					$.each( ids, function( i, id ) {
+						if ( actuallyAdded[ id ] ) {
+							contributed.push( id );
+						}
+					} );
+					if ( contributed.length > 0 ) {
+						cardContributions[ cardIdx ] = contributed;
+					}
+				} );
+			}
 
 			if ( addedCount > 0 ) {
 				$emptyState.hide();
@@ -598,8 +720,48 @@
 				var msg = qcData.i18n.postsLoaded.replace( '%d', addedCount );
 				showNotice( msg + ' (new)', 'success' );
 			} else {
-				showNotice( 'All results already in the curated list.', 'success' );
+				showNotice( qcData.i18n.allResultsExist, 'success' );
 			}
+
+			updateCardContributionLabels();
+		}
+
+		// -----------------------------------------------------------------
+		// Card contribution labels + undo
+		// -----------------------------------------------------------------
+
+		/**
+		 * Update contribution labels on each query card header.
+		 * Shows "Added X posts (Remove)" for cards that contributed new posts.
+		 */
+		function updateCardContributionLabels() {
+			$cardsContainer.find( '.qc-query-card' ).each( function( i ) {
+				var $card = $( this );
+				var $header = $card.find( '.qc-query-card-header' );
+
+				// Remove existing contribution label.
+				$header.find( '.qc-card-contribution' ).remove();
+
+				var contributed = cardContributions[ i ];
+				if ( contributed && contributed.length > 0 ) {
+					var label = qcData.i18n.addedPosts.replace( '%d', contributed.length );
+					var html = '<span class="qc-card-contribution">' +
+						escHtml( label ) +
+						' <a href="#" class="qc-undo-card-results" data-card-index="' + i + '">' +
+							escHtml( qcData.i18n.removeCardResults ) +
+						'</a>' +
+					'</span>';
+					$header.find( '.qc-remove-card' ).before( html );
+				}
+			} );
+		}
+
+		/**
+		 * Clear all card contribution tracking state and labels.
+		 */
+		function clearCardContributions() {
+			cardContributions = {};
+			$cardsContainer.find( '.qc-card-contribution' ).remove();
 		}
 
 		// -----------------------------------------------------------------
@@ -664,6 +826,7 @@
 					lockedIds = postIds.slice();
 					$grid.find( '.qc-post-item' ).removeClass( 'qc-new' ).addClass( 'qc-locked' );
 					$grid.find( '.qc-new-badge' ).remove();
+					clearCardContributions();
 					markClean();
 					showNotice( qcData.i18n.postsSaved, 'success' );
 				} else {
@@ -699,6 +862,68 @@
 			}, 3000 );
 		}
 
+		// -----------------------------------------------------------------
+		// Live preview count (debounced)
+		// -----------------------------------------------------------------
+
+		/**
+		 * Schedule a debounced preview count request.
+		 * Cancels any pending request and sets a 500ms timer.
+		 */
+		function schedulePreviewCount() {
+			if ( previewTimer ) {
+				clearTimeout( previewTimer );
+			}
+			previewTimer = setTimeout( fetchPreviewCount, 500 );
+		}
+
+		/**
+		 * Fetch the approximate result count from the server.
+		 */
+		function fetchPreviewCount() {
+			previewTimer = null;
+
+			// Cancel any in-flight request.
+			if ( previewXhr ) {
+				previewXhr.abort();
+				previewXhr = null;
+			}
+
+			var queries = gatherQueryData();
+
+			// Skip if no post type is selected in any card.
+			var hasPostType = false;
+			$.each( queries, function( i, q ) {
+				if ( q.post_type ) {
+					hasPostType = true;
+					return false;
+				}
+			} );
+			if ( ! hasPostType ) {
+				$previewCount.text( '' ).removeClass( 'qc-counting' );
+				return;
+			}
+
+			$previewCount.text( qcData.i18n.counting ).addClass( 'qc-counting' );
+
+			previewXhr = $.post( qcData.ajaxurl, {
+				action:  'qc_count_posts',
+				nonce:   qcData.nonce,
+				queries: queries
+			}, function( response ) {
+				previewXhr = null;
+				if ( response.success ) {
+					var text = qcData.i18n.previewCount.replace( '%d', response.data.count );
+					$previewCount.text( text ).removeClass( 'qc-counting' );
+				} else {
+					$previewCount.text( '' ).removeClass( 'qc-counting' );
+				}
+			} ).fail( function() {
+				previewXhr = null;
+				$previewCount.text( '' ).removeClass( 'qc-counting' );
+			} );
+		}
+
 		// =====================================================================
 		//  EVENT HANDLERS
 		// =====================================================================
@@ -719,6 +944,17 @@
 		$loadButton.on( 'click', function( e ) {
 			e.preventDefault();
 
+			// Cancel any pending preview.
+			if ( previewTimer ) {
+				clearTimeout( previewTimer );
+				previewTimer = null;
+			}
+			if ( previewXhr ) {
+				previewXhr.abort();
+				previewXhr = null;
+			}
+			$previewCount.text( '' ).removeClass( 'qc-counting' );
+
 			$spinner.show();
 			$loadButton.prop( 'disabled', true );
 			$refreshButton.prop( 'disabled', true );
@@ -736,7 +972,7 @@
 				$refreshButton.prop( 'disabled', false );
 
 				if ( response.success ) {
-					mergeResultsIntoGrid( response.data );
+					mergeResultsIntoGrid( response.data.posts, response.data.card_map );
 					// Enable Refresh button now that we have saved query params.
 					$refreshButton.prop( 'disabled', false );
 				} else {
@@ -779,7 +1015,7 @@
 				$refreshButton.prop( 'disabled', false );
 
 				if ( response.success ) {
-					mergeResultsIntoGrid( response.data );
+					mergeResultsIntoGrid( response.data.posts, response.data.card_map );
 				} else {
 					showNotice( response.data || qcData.i18n.errorLoading, 'error' );
 				}
@@ -799,10 +1035,24 @@
 			e.preventDefault();
 			e.stopPropagation();
 
+			var removedId = parseInt( $( this ).closest( '.qc-post-item' ).data( 'post-id' ), 10 );
+
 			$( this ).closest( '.qc-post-item' ).fadeOut( 200, function() {
 				$( this ).remove();
 				updateHiddenInput();
 				markDirty();
+
+				// Update card contributions — remove this ID from tracking.
+				$.each( cardContributions, function( idx, ids ) {
+					var pos = ids.indexOf( removedId );
+					if ( pos !== -1 ) {
+						ids.splice( pos, 1 );
+						if ( ids.length === 0 ) {
+							delete cardContributions[ idx ];
+						}
+					}
+				} );
+				updateCardContributionLabels();
 
 				if ( $grid.find( '.qc-post-item' ).length === 0 ) {
 					$emptyState.show();
