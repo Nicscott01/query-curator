@@ -1,0 +1,25 @@
+{
+  "name": "query-curator-dev",
+  "version": "1.0.0",
+  "description": "**Build and save curated post queries with drag-and-drop ordering for WordPress**",
+  "main": "index.js",
+  "scripts": {
+    "vendor:sync": "mkdir -p assets/vendor/select2 && cp node_modules/select2/dist/js/select2.min.js assets/vendor/select2/select2.min.js && cp node_modules/select2/dist/css/select2.min.css assets/vendor/select2/select2.min.css",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nicscott01/query-curator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Nicscott01/query-curator/issues"
+  },
+  "homepage": "https://github.com/Nicscott01/query-curator#readme",
+  "dependencies": {
+    "select2": "4.0.13"
+  }
+}

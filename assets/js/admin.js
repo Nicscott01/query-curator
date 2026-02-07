@@ -108,6 +108,87 @@
 		}
 
 		// -----------------------------------------------------------------
+		// Select2 lifecycle helpers
+		// -----------------------------------------------------------------
+
+		/**
+		 * Initialize Select2 widgets for supported selects in a card/container.
+		 *
+		 * @param {jQuery} $container Card or row container.
+		 */
+		function initSelect2OnCard( $container ) {
+			if ( 'function' !== typeof $.fn.select2 ) {
+				return;
+			}
+
+			$container.find( '.qc-card-taxonomy' ).each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					return;
+				}
+				$select.select2( {
+					placeholder: qcData.i18n.selectTaxTerms,
+					allowClear: true,
+					width: '100%'
+				} );
+			} );
+
+			$container.find( '.qc-card-post-type' ).each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					return;
+				}
+				$select.select2( {
+					minimumResultsForSearch: 10,
+					width: '100%'
+				} );
+			} );
+
+			$container.find( '.qc-meta-key' ).each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					return;
+				}
+				$select.select2( {
+					placeholder: qcData.i18n.selectMetaKey,
+					allowClear: true,
+					width: '100%'
+				} );
+			} );
+
+			$container.find( '.qc-meta-compare' ).each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					return;
+				}
+				$select.select2( {
+					placeholder: qcData.i18n.selectCompare,
+					minimumResultsForSearch: Infinity,
+					width: '100%'
+				} );
+			} );
+		}
+
+		/**
+		 * Destroy Select2 instances within a container before re-render/removal.
+		 *
+		 * @param {jQuery} $container Container to clean up.
+		 */
+		function destroySelect2In( $container ) {
+			if ( 'function' !== typeof $.fn.select2 ) {
+				return;
+			}
+
+			var $selects = $container.is( 'select' ) ? $container : $container.find( 'select' );
+			$selects.each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					$select.select2( 'destroy' );
+				}
+			} );
+		}
+
+		// -----------------------------------------------------------------
 		// Utility: Get current curated IDs from the hidden input
 		// -----------------------------------------------------------------
 
@@ -240,6 +321,7 @@
 
 			var $card = $( html );
 			$cardsContainer.append( $card );
+			initSelect2OnCard( $card );
 
 			// Determine post type to load taxonomies for.
 			var postType = data.post_type || ( qcData.postTypes.length > 0 ? qcData.postTypes[0].name : 'post' );
@@ -310,11 +392,14 @@
 
 			// When both load, render the UI.
 			$.when( taxPromise, metaPromise ).done( function( taxonomies, metaKeys ) {
+				destroySelect2In( $card.find( '.qc-taxonomy-container' ) );
+				destroySelect2In( $card.find( '.qc-meta-rows' ) );
 				renderTaxonomies( $card, taxonomies, data.taxonomies || {} );
 				// Store meta keys on the card for use when adding meta rows.
 				$card.data( 'metaKeys', metaKeys );
 				// Update existing meta rows with the new key options.
 				updateMetaKeyDropdowns( $card, metaKeys );
+				initSelect2OnCard( $card );
 			} );
 		}
 
@@ -327,6 +412,7 @@
 		 */
 		function renderTaxonomies( $card, taxonomies, selected ) {
 			var $container = $card.find( '.qc-taxonomy-container' );
+			destroySelect2In( $container );
 			$container.empty();
 
 			if ( ! taxonomies || taxonomies.length === 0 ) {
@@ -395,8 +481,9 @@
 					'<input type="text" class="qc-meta-value" value="' + escAttr( data.value || '' ) + '" placeholder="' + escAttr( qcData.i18n.metaValue ) + '" />' +
 					'<button type="button" class="qc-remove-meta-row button-link" title="Remove">&times;</button>' +
 				'</div>';
-
-			$card.find( '.qc-meta-rows' ).append( html );
+			var $row = $( html );
+			$card.find( '.qc-meta-rows' ).append( $row );
+			initSelect2OnCard( $row );
 		}
 
 		/**
@@ -409,6 +496,7 @@
 			$card.find( '.qc-meta-key' ).each( function() {
 				var $select    = $( this );
 				var currentVal = $select.val();
+				destroySelect2In( $select );
 
 				var options = '<option value="">' + escHtml( qcData.i18n.selectMetaKey ) + '</option>';
 				$.each( metaKeys, function( i, key ) {
@@ -422,6 +510,14 @@
 				}
 
 				$select.html( options );
+
+				if ( 'function' === typeof $.fn.select2 ) {
+					$select.select2( {
+						placeholder: qcData.i18n.selectMetaKey,
+						allowClear: true,
+						width: '100%'
+					} );
+				}
 			} );
 		}
 
@@ -512,6 +608,7 @@
 			e.preventDefault();
 			var $removedCard = $( this ).closest( '.qc-query-card' );
 			var removedIdx = $cardsContainer.find( '.qc-query-card' ).index( $removedCard );
+			destroySelect2In( $removedCard );
 
 			$removedCard.fadeOut( 200, function() {
 				$( this ).remove();
@@ -553,7 +650,9 @@
 		// Remove meta filter row.
 		$cardsContainer.on( 'click', '.qc-remove-meta-row', function( e ) {
 			e.preventDefault();
-			$( this ).closest( '.qc-meta-row' ).fadeOut( 150, function() {
+			var $row = $( this ).closest( '.qc-meta-row' );
+			destroySelect2In( $row );
+			$row.fadeOut( 150, function() {
 				$( this ).remove();
 				schedulePreviewCount();
 			} );

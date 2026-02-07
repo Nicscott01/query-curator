@@ -84,16 +84,31 @@ class Query_Curator_Meta_Boxes {
 		wp_enqueue_script( 'jquery-ui-sortable' );
 
 		wp_enqueue_style(
+			'qc-select2',
+			QC_PLUGIN_URL . 'assets/vendor/select2/select2.min.css',
+			array(),
+			'4.0.13'
+		);
+
+		wp_enqueue_style(
 			'qc-admin',
 			QC_PLUGIN_URL . 'assets/css/admin.css',
-			array(),
+			array( 'qc-select2' ),
 			QC_VERSION
+		);
+
+		wp_enqueue_script(
+			'qc-select2',
+			QC_PLUGIN_URL . 'assets/vendor/select2/select2.min.js',
+			array( 'jquery' ),
+			'4.0.13',
+			true
 		);
 
 		wp_enqueue_script(
 			'qc-admin',
 			QC_PLUGIN_URL . 'assets/js/admin.js',
-			array( 'jquery', 'jquery-ui-sortable' ),
+			array( 'jquery', 'jquery-ui-sortable', 'qc-select2' ),
 			QC_VERSION,
 			true
 		);
@@ -167,6 +182,8 @@ class Query_Curator_Meta_Boxes {
 				'publishedBefore'   => __( 'Published Before', 'query-curator' ),
 				'confirmReplace'    => __( 'This will add new results below your saved posts. Continue?', 'query-curator' ),
 				'selectMetaKey'     => __( '-- Select Key --', 'query-curator' ),
+				'selectTaxTerms'    => __( 'Select terms...', 'query-curator' ),
+				'selectCompare'     => __( 'Compare...', 'query-curator' ),
 				'addedPosts'        => __( 'Added %d posts', 'query-curator' ),
 				'removeCardResults' => __( 'Remove', 'query-curator' ),
 				'removedPosts'      => __( 'Removed %d posts', 'query-curator' ),

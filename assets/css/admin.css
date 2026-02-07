@@ -50,7 +50,61 @@
 }
 
 .qc-filter-field select[multiple] {
-	height: 100px;
+	height: auto;
+}
+
+/* Select2 controls should inherit native WP form feel. */
+.qc-query-builder .select2-container--default .select2-selection--single,
+.qc-query-builder .select2-container--default .select2-selection--multiple {
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	min-height: 30px;
+}
+
+.qc-query-builder .select2-container--default.select2-container--focus .select2-selection--single,
+.qc-query-builder .select2-container--default.select2-container--focus .select2-selection--multiple,
+.qc-query-builder .select2-container--default.select2-container--open .select2-selection--single,
+.qc-query-builder .select2-container--default.select2-container--open .select2-selection--multiple {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.qc-query-builder .select2-container--default .select2-selection--multiple .select2-selection__choice {
+	background: #2271b1;
+	border: none;
+	border-radius: 3px;
+	color: #fff;
+	padding: 2px 6px;
+}
+
+.qc-query-builder .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+	color: #fff;
+	margin-right: 4px;
+}
+
+.qc-query-builder .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover,
+.qc-query-builder .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:focus {
+	color: #dcdcde;
+}
+
+.select2-dropdown {
+	z-index: 100200;
+}
+
+.select2-search--dropdown .select2-search__field {
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	box-shadow: none;
+}
+
+.select2-search--dropdown .select2-search__field:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+	background: #2271b1;
 }
 
 .qc-filter-actions {
@@ -213,6 +267,20 @@
 .qc-meta-value {
 	flex: 2;
 	min-width: 100px;
+}
+
+.qc-meta-row .select2-container {
+	min-width: 0;
+}
+
+.qc-meta-row .qc-meta-key + .select2-container {
+	flex: 2;
+	min-width: 150px;
+}
+
+.qc-meta-row .qc-meta-compare + .select2-container {
+	flex: 0 0 auto;
+	width: 100px;
 }
 
 .qc-remove-meta-row {
@@ -698,6 +766,10 @@
 	.qc-meta-compare,
 	.qc-meta-value {
 		width: 100%;
+	}
+
+	.qc-meta-row .select2-container {
+		width: 100% !important;
 	}
 
 	.qc-meta-compare {
