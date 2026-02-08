@@ -167,6 +167,51 @@
 					width: '100%'
 				} );
 			} );
+
+			$container.find( '.qc-card-orderby' ).each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					return;
+				}
+				$select.select2( {
+					minimumResultsForSearch: Infinity,
+					width: '100%'
+				} );
+			} );
+
+			$container.find( '.qc-card-order' ).each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					return;
+				}
+				$select.select2( {
+					minimumResultsForSearch: Infinity,
+					width: '100%'
+				} );
+			} );
+
+			$container.find( '.qc-card-meta-type' ).each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					return;
+				}
+				$select.select2( {
+					minimumResultsForSearch: Infinity,
+					width: '100%'
+				} );
+			} );
+
+			$container.find( '.qc-orderby-meta-key' ).each( function() {
+				var $select = $( this );
+				if ( $select.data( 'select2' ) ) {
+					return;
+				}
+				$select.select2( {
+					placeholder: qcData.i18n.selectOrderMetaKey,
+					allowClear: true,
+					width: '100%'
+				} );
+			} );
 		}
 
 		/**
@@ -311,6 +356,43 @@
 								'<input type="date" class="qc-card-date-before" value="' + escAttr( data.date_before || '' ) + '" />' +
 							'</div>' +
 						'</div>' +
+						'<div class="qc-filter-row qc-order-row">' +
+							'<div class="qc-filter-field">' +
+								'<label>' + escHtml( qcData.i18n.orderBy ) + '</label>' +
+								'<select class="qc-card-orderby">' +
+									'<option value="date"' + ( data.orderby === 'date' || ! data.orderby ? ' selected' : '' ) + '>' + escHtml( qcData.i18n.orderByDate ) + '</option>' +
+									'<option value="title"' + ( data.orderby === 'title' ? ' selected' : '' ) + '>' + escHtml( qcData.i18n.orderByTitle ) + '</option>' +
+									'<option value="meta_value"' + ( data.orderby === 'meta_value' ? ' selected' : '' ) + '>' + escHtml( qcData.i18n.orderByMetaValue ) + '</option>' +
+									'<option value="rand"' + ( data.orderby === 'rand' ? ' selected' : '' ) + '>' + escHtml( qcData.i18n.orderByRandom ) + '</option>' +
+								'</select>' +
+							'</div>' +
+							'<div class="qc-filter-field qc-order-direction-field"' + ( data.orderby === 'rand' ? ' style="display:none;"' : '' ) + '>' +
+								'<label>' + escHtml( qcData.i18n.orderDirection ) + '</label>' +
+								'<select class="qc-card-order">' +
+									'<option value="DESC"' + ( data.order === 'DESC' || ! data.order ? ' selected' : '' ) + '>' + escHtml( qcData.i18n.orderDesc ) + '</option>' +
+									'<option value="ASC"' + ( data.order === 'ASC' ? ' selected' : '' ) + '>' + escHtml( qcData.i18n.orderAsc ) + '</option>' +
+								'</select>' +
+							'</div>' +
+							'<div class="qc-filter-field qc-orderby-meta-key-field"' + ( data.orderby !== 'meta_value' ? ' style="display:none;"' : '' ) + '>' +
+								'<label>' + escHtml( qcData.i18n.orderMetaKey ) + '</label>' +
+								'<select class="qc-orderby-meta-key">' +
+									'<option value="">' + escHtml( qcData.i18n.selectOrderMetaKey ) + '</option>' +
+								'</select>' +
+							'</div>' +
+							'<div class="qc-filter-field qc-meta-type-field"' + ( data.orderby !== 'meta_value' ? ' style="display:none;"' : '' ) + '>' +
+								'<label>' + escHtml( qcData.i18n.metaType ) + '</label>' +
+								'<select class="qc-card-meta-type">' +
+									'<option value="CHAR"' + ( data.meta_type === 'CHAR' || ! data.meta_type ? ' selected' : '' ) + '>CHAR</option>' +
+									'<option value="NUMERIC"' + ( data.meta_type === 'NUMERIC' ? ' selected' : '' ) + '>NUMERIC</option>' +
+									'<option value="DATE"' + ( data.meta_type === 'DATE' ? ' selected' : '' ) + '>DATE</option>' +
+									'<option value="DATETIME"' + ( data.meta_type === 'DATETIME' ? ' selected' : '' ) + '>DATETIME</option>' +
+									'<option value="DECIMAL"' + ( data.meta_type === 'DECIMAL' ? ' selected' : '' ) + '>DECIMAL</option>' +
+									'<option value="SIGNED"' + ( data.meta_type === 'SIGNED' ? ' selected' : '' ) + '>SIGNED</option>' +
+									'<option value="UNSIGNED"' + ( data.meta_type === 'UNSIGNED' ? ' selected' : '' ) + '>UNSIGNED</option>' +
+									'<option value="TIME"' + ( data.meta_type === 'TIME' ? ' selected' : '' ) + '>TIME</option>' +
+								'</select>' +
+							'</div>' +
+						'</div>' +
 						'<div class="qc-meta-section">' +
 							'<label class="qc-meta-section-label">' + escHtml( qcData.i18n.metaKey ) + ' Filters</label>' +
 							'<div class="qc-meta-rows"></div>' +
@@ -399,6 +481,7 @@
 				$card.data( 'metaKeys', metaKeys );
 				// Update existing meta rows with the new key options.
 				updateMetaKeyDropdowns( $card, metaKeys );
+				updateOrderByMetaKeyDropdown( $card, metaKeys, data );
 				initSelect2OnCard( $card );
 			} );
 		}
@@ -522,6 +605,42 @@
 		}
 
 		/**
+		 * Update the Order By meta key dropdown when meta keys load.
+		 *
+		 * @param {jQuery} $card    The card element.
+		 * @param {Array}  metaKeys Array of meta key strings.
+		 * @param {Object} [data]   Optional saved data with orderby_meta_key.
+		 */
+		function updateOrderByMetaKeyDropdown( $card, metaKeys, data ) {
+			data = data || {};
+			var $select    = $card.find( '.qc-orderby-meta-key' );
+			var currentVal = data.orderby_meta_key || $select.val() || '';
+
+			destroySelect2In( $select );
+
+			var options = '<option value="">' + escHtml( qcData.i18n.selectOrderMetaKey ) + '</option>';
+			$.each( metaKeys, function( i, key ) {
+				var sel = ( key === currentVal ) ? ' selected' : '';
+				options += '<option value="' + escAttr( key ) + '"' + sel + '>' + escHtml( key ) + '</option>';
+			} );
+
+			// Preserve current selection even if not in list.
+			if ( currentVal && metaKeys.indexOf( currentVal ) === -1 ) {
+				options += '<option value="' + escAttr( currentVal ) + '" selected>' + escHtml( currentVal ) + '</option>';
+			}
+
+			$select.html( options );
+
+			if ( 'function' === typeof $.fn.select2 ) {
+				$select.select2( {
+					placeholder: qcData.i18n.selectOrderMetaKey,
+					allowClear: true,
+					width: '100%'
+				} );
+			}
+		}
+
+		/**
 		 * Update query card header numbers after add/remove.
 		 */
 		function updateCardHeaders() {
@@ -555,12 +674,16 @@
 			$cardsContainer.find( '.qc-query-card' ).each( function() {
 				var $card = $( this );
 				var query = {
-					post_type:    $card.find( '.qc-card-post-type' ).val(),
-					taxonomies:   {},
-					date_after:   $card.find( '.qc-card-date-after' ).val() || '',
-					date_before:  $card.find( '.qc-card-date-before' ).val() || '',
-					meta_queries: [],
-					limit:        parseInt( $card.find( '.qc-card-limit' ).val(), 10 ) || 100,
+					post_type:        $card.find( '.qc-card-post-type' ).val(),
+					taxonomies:       {},
+					date_after:       $card.find( '.qc-card-date-after' ).val() || '',
+					date_before:      $card.find( '.qc-card-date-before' ).val() || '',
+					meta_queries:     [],
+					limit:            parseInt( $card.find( '.qc-card-limit' ).val(), 10 ) || 100,
+					orderby:          $card.find( '.qc-card-orderby' ).val() || 'date',
+					order:            $card.find( '.qc-card-order' ).val() || 'DESC',
+					orderby_meta_key: $card.find( '.qc-orderby-meta-key' ).val() || '',
+					meta_type:        $card.find( '.qc-card-meta-type' ).val() || '',
 				};
 
 				// Gather taxonomy selections.
@@ -721,6 +844,45 @@
 
 		// Limit change.
 		$cardsContainer.on( 'change', '.qc-card-limit', function() {
+			schedulePreviewCount();
+		} );
+
+		// Order By change — toggle meta-specific fields and order direction.
+		$cardsContainer.on( 'change', '.qc-card-orderby', function() {
+			var $card   = $( this ).closest( '.qc-query-card' );
+			var orderby = $( this ).val();
+
+			// Show/hide meta key + meta type fields.
+			if ( orderby === 'meta_value' ) {
+				$card.find( '.qc-orderby-meta-key-field' ).show();
+				$card.find( '.qc-meta-type-field' ).show();
+			} else {
+				$card.find( '.qc-orderby-meta-key-field' ).hide();
+				$card.find( '.qc-meta-type-field' ).hide();
+			}
+
+			// Show/hide order direction (hidden for random).
+			if ( orderby === 'rand' ) {
+				$card.find( '.qc-order-direction-field' ).hide();
+			} else {
+				$card.find( '.qc-order-direction-field' ).show();
+			}
+
+			schedulePreviewCount();
+		} );
+
+		// Order direction change.
+		$cardsContainer.on( 'change', '.qc-card-order', function() {
+			schedulePreviewCount();
+		} );
+
+		// Order By meta key change.
+		$cardsContainer.on( 'change', '.qc-orderby-meta-key', function() {
+			schedulePreviewCount();
+		} );
+
+		// Meta type change.
+		$cardsContainer.on( 'change', '.qc-card-meta-type', function() {
 			schedulePreviewCount();
 		} );
 
@@ -1168,6 +1330,30 @@
 				e.preventDefault();
 				$( this ).find( '.qc-remove-post' ).trigger( 'click' );
 			}
+		} );
+
+		// -----------------------------------------------------------------
+		// Remove All
+		// -----------------------------------------------------------------
+
+		$( '#qc-remove-all-btn' ).on( 'click', function( e ) {
+			e.preventDefault();
+
+			if ( $grid.find( '.qc-post-item' ).length === 0 ) {
+				return;
+			}
+
+			if ( ! confirm( qcData.i18n.confirmRemoveAll ) ) {
+				return;
+			}
+
+			$grid.find( '.qc-post-item' ).remove();
+			lockedIds = [];
+			updateHiddenInput();
+			clearCardContributions();
+			markDirty();
+			$emptyState.show();
+			updateResultsCount();
 		} );
 
 		// =====================================================================

@@ -64,12 +64,16 @@ function qc_normalize_query_params( $params ) {
 
 	// Legacy flat format — convert to multi-query.
 	$query = array(
-		'post_type'    => isset( $params['post_type'] ) ? $params['post_type'] : 'post',
-		'taxonomies'   => array(),
-		'date_after'   => isset( $params['date_after'] ) ? $params['date_after'] : '',
-		'date_before'  => isset( $params['date_before'] ) ? $params['date_before'] : '',
-		'meta_queries' => array(),
-		'limit'        => isset( $params['limit'] ) ? absint( $params['limit'] ) : 100,
+		'post_type'        => isset( $params['post_type'] ) ? $params['post_type'] : 'post',
+		'taxonomies'       => array(),
+		'date_after'       => isset( $params['date_after'] ) ? $params['date_after'] : '',
+		'date_before'      => isset( $params['date_before'] ) ? $params['date_before'] : '',
+		'meta_queries'     => array(),
+		'limit'            => isset( $params['limit'] ) ? absint( $params['limit'] ) : 100,
+		'orderby'          => isset( $params['orderby'] ) ? $params['orderby'] : 'date',
+		'order'            => isset( $params['order'] ) ? $params['order'] : 'DESC',
+		'orderby_meta_key' => isset( $params['orderby_meta_key'] ) ? $params['orderby_meta_key'] : '',
+		'meta_type'        => isset( $params['meta_type'] ) ? $params['meta_type'] : '',
 	);
 
 	// Map old categories to taxonomies.category.

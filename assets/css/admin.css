@@ -223,6 +223,29 @@
 }
 
 /* ==========================================================================
+   Order By Controls
+   ========================================================================== */
+
+.qc-order-row {
+	align-items: flex-end;
+}
+
+.qc-order-direction-field {
+	max-width: 160px;
+	flex: 0 0 auto;
+}
+
+.qc-meta-type-field {
+	max-width: 150px;
+	flex: 0 0 auto;
+}
+
+.qc-orderby-meta-key-field {
+	flex: 1;
+	min-width: 180px;
+}
+
+/* ==========================================================================
    Meta Filter Rows (repeatable)
    ========================================================================== */
 
@@ -730,6 +753,13 @@
 
 	.qc-field-limit {
 		max-width: 100%;
+	}
+
+	.qc-order-direction-field,
+	.qc-meta-type-field,
+	.qc-orderby-meta-key-field {
+		max-width: 100%;
+		flex: 1 1 100%;
 	}
 
 	.qc-results-grid {

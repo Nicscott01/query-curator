@@ -190,6 +190,19 @@ class Query_Curator_Meta_Boxes {
 				'allResultsExist'   => __( 'No new posts added', 'query-curator' ),
 				'previewCount'      => __( '~%d results', 'query-curator' ),
 				'counting'          => __( 'Counting...', 'query-curator' ),
+				'orderBy'           => __( 'Order By', 'query-curator' ),
+				'orderDirection'    => __( 'Order', 'query-curator' ),
+				'orderByDate'       => __( 'Date', 'query-curator' ),
+				'orderByTitle'      => __( 'Title', 'query-curator' ),
+				'orderByMetaValue'  => __( 'Meta Value', 'query-curator' ),
+				'orderByRandom'     => __( 'Random', 'query-curator' ),
+				'orderAsc'          => __( 'ASC', 'query-curator' ),
+				'orderDesc'         => __( 'DESC', 'query-curator' ),
+				'orderMetaKey'      => __( 'Order By Key', 'query-curator' ),
+				'metaType'          => __( 'Meta Type', 'query-curator' ),
+				'selectOrderMetaKey' => __( '-- Select Key --', 'query-curator' ),
+				'removeAll'         => __( 'Remove All', 'query-curator' ),
+				'confirmRemoveAll'  => __( 'Remove all posts from the curated list?', 'query-curator' ),
 			),
 		) );
 	}
@@ -317,6 +330,10 @@ class Query_Curator_Meta_Boxes {
 					<button type="button" id="qc-save-posts-btn" class="button button-primary qc-save-posts-btn" disabled>
 						<span class="dashicons dashicons-saved" style="vertical-align: middle; margin-top: -2px;"></span>
 						<?php esc_html_e( 'Save Posts', 'query-curator' ); ?>
+					</button>
+					<button type="button" id="qc-remove-all-btn" class="button" style="color:#b32d2e;">
+						<span class="dashicons dashicons-trash" style="vertical-align: middle; margin-top: -2px;"></span>
+						<?php esc_html_e( 'Remove All', 'query-curator' ); ?>
 					</button>
 					<button type="button" id="qc-add-posts-btn" class="button">
 						<span class="dashicons dashicons-plus-alt2" style="vertical-align: middle; margin-top: -2px;"></span>

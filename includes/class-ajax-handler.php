@@ -32,6 +32,13 @@ class Query_Curator_Ajax_Handler {
 	private $valid_compares = array( '=', '!=', '>', '<', '>=', '<=', 'LIKE', 'NOT LIKE', 'EXISTS', 'NOT EXISTS' );
 
 	/**
+	 * Allowed meta type values for ordering.
+	 *
+	 * @var array
+	 */
+	private $valid_meta_types = array( 'CHAR', 'NUMERIC', 'DATE', 'DATETIME', 'DECIMAL', 'SIGNED', 'UNSIGNED', 'TIME' );
+
+	/**
 	 * Constructor. Register AJAX actions.
 	 */
 	public function __construct() {
@@ -276,6 +283,28 @@ class Query_Curator_Ajax_Handler {
 		// Cap the limit at 500.
 		$limit = min( max( $limit, 1 ), 500 );
 
+		// Ordering fields.
+		$orderby          = isset( $raw_query['orderby'] ) ? sanitize_key( $raw_query['orderby'] ) : 'date';
+		$order            = isset( $raw_query['order'] ) ? strtoupper( sanitize_text_field( $raw_query['order'] ) ) : 'DESC';
+		$orderby_meta_key = isset( $raw_query['orderby_meta_key'] ) ? sanitize_text_field( $raw_query['orderby_meta_key'] ) : '';
+		$meta_type        = isset( $raw_query['meta_type'] ) ? strtoupper( sanitize_text_field( $raw_query['meta_type'] ) ) : '';
+
+		// Validate orderby.
+		$valid_orderbys = array( 'date', 'title', 'meta_value', 'rand' );
+		if ( ! in_array( $orderby, $valid_orderbys, true ) ) {
+			$orderby = 'date';
+		}
+
+		// Validate order direction.
+		if ( ! in_array( $order, array( 'ASC', 'DESC' ), true ) ) {
+			$order = 'DESC';
+		}
+
+		// Validate meta_type.
+		if ( ! empty( $meta_type ) && ! in_array( $meta_type, $this->valid_meta_types, true ) ) {
+			$meta_type = '';
+		}
+
 		// Validate post type exists.
 		if ( ! post_type_exists( $post_type ) ) {
 			$post_type = 'post';
@@ -286,10 +315,30 @@ class Query_Curator_Ajax_Handler {
 			'post_type'      => $post_type,
 			'posts_per_page' => $limit,
 			'post_status'    => 'publish',
-			'orderby'        => 'date',
-			'order'          => 'DESC',
 			'fields'         => 'ids',
 		);
+
+		// Apply ordering.
+		if ( 'rand' === $orderby ) {
+			$args['orderby'] = 'rand';
+		} elseif ( 'meta_value' === $orderby && ! empty( $orderby_meta_key ) ) {
+			$args['meta_key'] = $orderby_meta_key;
+			// Use meta_value_num for numeric types, meta_value for string types.
+			$numeric_types = array( 'NUMERIC', 'DECIMAL', 'SIGNED', 'UNSIGNED' );
+			if ( ! empty( $meta_type ) && in_array( $meta_type, $numeric_types, true ) ) {
+				$args['orderby'] = 'meta_value_num';
+			} else {
+				$args['orderby'] = 'meta_value';
+			}
+			$args['order'] = $order;
+			if ( ! empty( $meta_type ) ) {
+				$args['meta_type'] = $meta_type;
+			}
+		} else {
+			// 'date' or 'title'.
+			$args['orderby'] = $orderby;
+			$args['order']   = $order;
+		}
 
 		// --- Dynamic taxonomy query ---
 		$raw_taxonomies  = isset( $raw_query['taxonomies'] ) && is_array( $raw_query['taxonomies'] ) ? $raw_query['taxonomies'] : array();
@@ -389,12 +438,16 @@ class Query_Curator_Ajax_Handler {
 
 		// Build sanitized params for saving.
 		$params = array(
-			'post_type'    => $post_type,
-			'taxonomies'   => $clean_taxonomies,
-			'date_after'   => $date_after,
-			'date_before'  => $date_before,
-			'meta_queries' => $clean_meta_queries,
-			'limit'        => $limit,
+			'post_type'        => $post_type,
+			'taxonomies'       => $clean_taxonomies,
+			'date_after'       => $date_after,
+			'date_before'      => $date_before,
+			'meta_queries'     => $clean_meta_queries,
+			'limit'            => $limit,
+			'orderby'          => $orderby,
+			'order'            => $order,
+			'orderby_meta_key' => $orderby_meta_key,
+			'meta_type'        => $meta_type,
 		);
 
 		return array(
