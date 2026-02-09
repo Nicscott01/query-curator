@@ -1,0 +1,14 @@
+{
+    "name": "nicscott01/query-curator",
+    "description": "Build custom post lists via combining WP Queries and manual post adding.",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "Nic",
+            "email": "nic@crearewebsolutions.com"
+        }
+    ],
+    "require": {},
+    "prefer-stable": true,
+    "minimum-stability": "dev"
+}
