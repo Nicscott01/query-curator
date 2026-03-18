@@ -74,6 +74,7 @@ function qc_persist_curated_post_ids( $post_id, $post_ids ) {
 
 	update_post_meta( $post_id, '_curated_post_ids', $post_ids );
 	clean_post_cache( $post_id );
+	qc_purge_query_group_caches( $post_id );
 
 	/**
 	 * Fires after the curated post order is saved.
@@ -82,6 +83,47 @@ function qc_persist_curated_post_ids( $post_id, $post_ids ) {
 	 * @param array $post_ids The ordered array of curated post IDs.
 	 */
 	do_action( 'query_curator_order_saved', $post_id, $post_ids );
+}
+
+/**
+ * Purge caches that may serve stale curated-post output.
+ *
+ * Query groups are admin-only posts, so platform cache plugins usually
+ * do not purge front-end caches automatically when they change. We clear
+ * core post cache, then trigger site-level cache purges when available.
+ *
+ * @param int $post_id Query group post ID.
+ * @return void
+ */
+function qc_purge_query_group_caches( $post_id ) {
+	$post_id = absint( $post_id );
+
+	/**
+	 * Allow site code to run custom cache purges for query group updates.
+	 *
+	 * @param int $post_id Query group post ID.
+	 */
+	do_action( 'query_curator_before_cache_purge', $post_id );
+
+	if ( wp_using_ext_object_cache() && function_exists( 'wp_cache_flush' ) ) {
+		wp_cache_flush();
+	}
+
+	// Prefer SpinupWP's public helper when available for page cache purges.
+	if ( function_exists( 'spinupwp_purge_site' ) ) {
+		spinupwp_purge_site();
+	} else {
+		do_action( 'spinupwp_purge_page_cache' );
+	}
+
+	do_action( 'spinupwp_purge_object_cache' );
+
+	/**
+	 * Fires after query group caches have been purged.
+	 *
+	 * @param int $post_id Query group post ID.
+	 */
+	do_action( 'query_curator_after_cache_purge', $post_id );
 }
 
 /**
