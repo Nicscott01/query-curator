@@ -29,6 +29,7 @@ class Query_Curator_Meta_Boxes {
 		add_action( 'add_meta_boxes', array( $this, 'register_meta_boxes' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 		add_action( 'admin_head', array( $this, 'add_help_tab' ) );
+		add_action( 'save_post_query_group', array( $this, 'save_curated_posts' ), 10, 3 );
 	}
 
 	/**
@@ -312,6 +313,7 @@ class Query_Curator_Meta_Boxes {
 		$curated_ids = is_array( $curated_ids ) ? array_map( 'absint', $curated_ids ) : array();
 		?>
 		<div class="qc-results-wrapper">
+			<?php wp_nonce_field( 'qc_save_curated_posts', 'qc_save_curated_posts_nonce' ); ?>
 			<input type="hidden" id="qc-curated-post-ids" name="qc_curated_post_ids" value="<?php echo esc_attr( implode( ',', $curated_ids ) ); ?>" />
 
 			<div class="qc-results-toolbar">
@@ -486,5 +488,39 @@ class Query_Curator_Meta_Boxes {
 			<?php endif; ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Persist curated post IDs when the main post form is saved.
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 * @param bool    $update  Whether this is an update.
+	 * @return void
+	 */
+	public function save_curated_posts( $post_id, $post, $update ) {
+		unset( $post, $update );
+
+		if ( wp_is_post_revision( $post_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
+			return;
+		}
+
+		if ( ! isset( $_POST['qc_save_curated_posts_nonce'] ) ) {
+			return;
+		}
+
+		$nonce = sanitize_text_field( wp_unslash( $_POST['qc_save_curated_posts_nonce'] ) );
+		if ( ! wp_verify_nonce( $nonce, 'qc_save_curated_posts' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		$raw_post_ids = isset( $_POST['qc_curated_post_ids'] ) ? wp_unslash( $_POST['qc_curated_post_ids'] ) : '';
+		$post_ids     = qc_sanitize_curated_post_ids( $raw_post_ids );
+
+		qc_persist_curated_post_ids( $post_id, $post_ids );
 	}
 }

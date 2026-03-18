@@ -1,6 +1,6 @@
 {
   "name": "query-curator-dev",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "**Build and save curated post queries with drag-and-drop ordering for WordPress**",
   "main": "index.js",
   "scripts": {

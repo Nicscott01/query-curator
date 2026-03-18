@@ -482,21 +482,9 @@ class Query_Curator_Ajax_Handler {
 			wp_send_json_error( __( 'Invalid post type.', 'query-curator' ) );
 		}
 
-		// Sanitize post IDs — remove zeros and duplicates.
-		$post_ids = isset( $_POST['post_ids'] ) ? (array) $_POST['post_ids'] : array();
-		$post_ids = array_map( 'absint', $post_ids );
-		$post_ids = array_values( array_filter( $post_ids ) );
+		$post_ids = isset( $_POST['post_ids'] ) ? qc_sanitize_curated_post_ids( wp_unslash( $_POST['post_ids'] ) ) : array();
 
-		// Save to post meta.
-		update_post_meta( $post_id, '_curated_post_ids', $post_ids );
-
-		/**
-		 * Fires after the curated post order is saved.
-		 *
-		 * @param int   $post_id  The query group post ID.
-		 * @param array $post_ids The ordered array of curated post IDs.
-		 */
-		do_action( 'query_curator_order_saved', $post_id, $post_ids );
+		qc_persist_curated_post_ids( $post_id, $post_ids );
 
 		wp_send_json_success( array(
 			'message' => __( 'Posts saved.', 'query-curator' ),

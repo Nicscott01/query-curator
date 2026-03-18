@@ -3,7 +3,7 @@
  * Plugin Name: Query Curator
  * Plugin URI: https://github.com/Nicscott01/query-curator
  * Description: Build and save curated post queries with drag-and-drop ordering.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Nicolas Scott
  * Author URI: https://crearewebsolutions.com
  * License: GPL v2 or later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'QC_VERSION', '1.0.0' );
+define( 'QC_VERSION', '1.0.1' );
 define( 'QC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'QC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 

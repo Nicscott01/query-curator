@@ -34,6 +34,7 @@ You're building a bookstore website. The homepage needs to feature 8 carefully s
 - Name them meaningfully ("Homepage Books", "Featured Products", "Staff Picks")
 - Reuse across your entire site
 - Edit anytime - changes apply everywhere
+- Saving via **Save Posts** or the main WordPress **Update** button keeps the curated list in sync and clears the query group cache
 
 ### 🔧 Developer-Friendly
 - Simple helper function: `get_query_group( $id )`
@@ -104,7 +105,7 @@ Then activate via WordPress admin.
 2. **Drag and drop** to reorder posts
 3. Click the **X** to remove unwanted posts
 4. Use **Add Posts** to manually include others
-5. Changes save automatically
+5. Click **Save Posts** to persist the curated order, or use the main WordPress **Update** button to save the post and curated list together
 
 ### Step 4: Use in Your Theme/Builder
 

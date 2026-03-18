@@ -43,6 +43,48 @@ function get_query_group( $query_group ) {
 }
 
 /**
+ * Sanitize curated post IDs into a unique ordered integer array.
+ *
+ * Accepts either a comma-delimited string or an array of IDs.
+ *
+ * @param string|array $raw_post_ids Raw post IDs from the request.
+ * @return array
+ */
+function qc_sanitize_curated_post_ids( $raw_post_ids ) {
+	if ( is_string( $raw_post_ids ) ) {
+		$raw_post_ids = explode( ',', $raw_post_ids );
+	}
+
+	$post_ids = array_map( 'absint', (array) $raw_post_ids );
+	$post_ids = array_values( array_unique( array_filter( $post_ids ) ) );
+
+	return $post_ids;
+}
+
+/**
+ * Persist curated post IDs and clear the query group post cache.
+ *
+ * @param int   $post_id  Query group post ID.
+ * @param array $post_ids Ordered curated post IDs.
+ * @return void
+ */
+function qc_persist_curated_post_ids( $post_id, $post_ids ) {
+	$post_id  = absint( $post_id );
+	$post_ids = qc_sanitize_curated_post_ids( $post_ids );
+
+	update_post_meta( $post_id, '_curated_post_ids', $post_ids );
+	clean_post_cache( $post_id );
+
+	/**
+	 * Fires after the curated post order is saved.
+	 *
+	 * @param int   $post_id  The query group post ID.
+	 * @param array $post_ids The ordered array of curated post IDs.
+	 */
+	do_action( 'query_curator_order_saved', $post_id, $post_ids );
+}
+
+/**
  * Normalize query params to the multi-query format.
  *
  * Converts the legacy flat format (single post_type, categories, tags,

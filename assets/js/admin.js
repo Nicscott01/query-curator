@@ -53,6 +53,9 @@
 		/** @type {jqXHR|null} Active preview count AJAX request. */
 		var previewXhr = null;
 
+		/** @type {boolean} Whether the main post form is being submitted. */
+		var isSubmittingPost = false;
+
 		// -----------------------------------------------------------------
 		// Cache DOM references
 		// -----------------------------------------------------------------
@@ -274,9 +277,14 @@
 
 		// Warn on page leave with unsaved changes.
 		$( window ).on( 'beforeunload', function() {
-			if ( isDirty ) {
+			if ( isDirty && ! isSubmittingPost ) {
 				return qcData.i18n.unsavedChanges;
 			}
+		} );
+
+		$( '#post' ).on( 'submit', function() {
+			isSubmittingPost = true;
+			updateHiddenInput();
 		} );
 
 		// -----------------------------------------------------------------
